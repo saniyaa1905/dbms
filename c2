@@ -1,0 +1,66 @@
+-- Drop tables if they already exist
+DROP TABLE IF EXISTS Student;
+DROP TABLE IF EXISTS Teaches;
+
+-- 1. Create Student table
+CREATE TABLE Student (
+    stud_id INT PRIMARY KEY,
+    deptnm VARCHAR(20),
+    SEM INT,
+    yr INT,
+    credits INT
+);
+
+-- 2. Create Teaches table
+CREATE TABLE Teaches (
+    teacher_id INT PRIMARY KEY,
+    teacher_name VARCHAR(20),
+    salary INT,
+    deptnm VARCHAR(20)
+);
+
+-- 3. Insert records into Student table
+INSERT INTO Student VALUES
+(1, 'COMP', 3, 2023, 25),
+(2, 'IT', 2, 2024, 20),
+(3, 'COMP', 4, 2023, 28),
+(4, 'MECH', 1, 2024, 18),
+(5, 'ENTC', 2, 2023, 22);
+
+-- 4. Insert records into Teaches table
+INSERT INTO Teaches VALUES
+(101, 'Anita', 5000, 'COMP'),
+(102, 'Ravi', 2500, 'IT'),
+(103, 'Sneha', 1500, 'MECH'),
+(104, 'Raj', 3000, 'ENTC'),
+(105, 'Meena', 6000, 'COMP');
+
+-- 5. Update record on Student table: Change COMP to IT
+UPDATE Student
+SET deptnm = 'IT'
+WHERE deptnm = 'COMP';
+
+-- 6. Find the department that has highest salary
+SELECT deptnm, MAX(salary) AS Highest_Salary
+FROM Teaches
+GROUP BY deptnm;
+
+-- 7. Find the department with average salary
+SELECT deptnm, AVG(salary) AS Average_Salary
+FROM Teaches
+GROUP BY deptnm;
+
+-- 8. Delete records of all teachers with salary below 2000
+DELETE FROM Teaches
+WHERE salary < 2000;
+
+-- 9. Find sum of salary of each department (using GROUP BY)
+SELECT deptnm, SUM(salary) AS Total_Salary
+FROM Teaches
+GROUP BY deptnm;
+
+-- 10. Display final tables
+SELECT * FROM Student;
+SELECT * FROM Teaches;
+
+
