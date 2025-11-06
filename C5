@@ -1,0 +1,197 @@
+SET SERVEROUT ON
+SET VERIFY OFF
+
+CREATE TABLE borrower(roll_no NUMBER , name VARCHAR2(25), dateofissue DATE,name_of_book
+VARCHAR2(25), status VARCHAR2(20));
+CREATE TABLE fine(roll_no NUMBER,date_of_return DATE,amt NUMBER);
+INSERT INTO borrower VALUES(45,'ASHUTOSH',TO_DATE('01-08-2022','DD-MM-YYYY'),'HARRY POTTER','PENDING');
+INSERT INTO borrower VALUES(46,'ARYAN',TO_DATE('15-08-2022','DD-MM-YYYY'),'DARK MATTER','PENDING');
+INSERT INTO borrower VALUES(47,'ROHAN',TO_DATE('24-08-2022','DD-MM-YYYY'),'SILENT HILL','PENDING');
+INSERT INTO borrower VALUES(48,'SANKET',TO_DATE('26-08-2022','DD-MM-YYYY'),'GOD OF WAR','PENDING');
+INSERT INTO borrower VALUES(49,'SARTHAK',TO_DATE('09-09-2022','DD-MM-YYYY'),'SPIDER-MAN','PENDING');
+
+DECLARE
+    i_roll_no     NUMBER;
+    name_of_book  VARCHAR2(25);
+    no_of_days    NUMBER;
+    return_date   DATE := SYSDATE;
+    temp          NUMBER;
+    doi           DATE;
+    fine          NUMBER;
+BEGIN
+    i_roll_no := &i_roll_no;
+    name_of_book := '&nameofbook';
+
+    SELECT date_of_issue INTO doi 
+    FROM borrower 
+    WHERE borrower.roll_number = i_roll_no AND borrower.name_of_book = name_of_book;
+
+    -- Calculate the number of days difference
+    no_of_days := TRUNC(return_date) - TRUNC(doi);
+
+    DBMS_OUTPUT.PUT_LINE('Number of days late: ' || no_of_days);
+
+    IF (no_of_days > 15 AND no_of_days <= 30) THEN
+        fine := 5 * no_of_days;
+    ELSIF (no_of_days > 30) THEN
+        temp := no_of_days - 30;
+        fine := 150 + temp * 50;
+    ELSE
+        fine := 0;  -- Assign a fine of 0 for returns within the 15-day limit
+    END IF;
+
+    DBMS_OUTPUT.PUT_LINE('Calculated fine: ' || fine);
+
+    INSERT INTO fine VALUES (i_roll_no, return_date, fine);
+
+    UPDATE borrower 
+    SET status = 'RETURNED' 
+    WHERE roll_number = i_roll_no;
+    
+    COMMIT; -- Add a COMMIT to save the changes
+    DBMS_OUTPUT.PUT_LINE('Transaction committed successfully.');
+    
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Error: No book found for the given roll number and book name.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An unexpected error occurred: ' || SQLERRM);
+END;
+/
+
+
+select * from borrower;
+select * from fine;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+MAYURI C5
+DROP TABLE if exists fine;
+DROP TABLE if exists borrow;
+
+-- Create tables
+create table borrow(
+    Roll_no int primary key,
+    Book_name varchar2(100),
+    Name varchar2(100),
+    date_of_issue date,
+    status char(1)
+);
+
+create table fine(
+    roll_no int,
+    Date_1 date,
+    amt float
+);
+
+-- Insert sample data
+INSERT INTO borrow VALUES(1, 'DBMS', 'Aarav', DATE '2025-10-01', 'I');
+INSERT INTO borrow VALUES(2, 'OS', 'Bhavana', DATE '2025-09-20', 'I');
+INSERT INTO borrow VALUES(3, 'Networks', 'Chetan', DATE '2025-10-25', 'I');
+INSERT INTO borrow VALUES(4, 'HCI', 'Devika', DATE '2025-10-10', 'I');
+INSERT INTO borrow VALUES(5, 'SE', 'Eshan', DATE '2025-09-28', 'I');
+
+-- Create the procedure with transaction control
+CREATE OR REPLACE PROCEDURE calc_fine (
+  p_roll_no IN borrow.Roll_no%TYPE,
+  p_name_of_book IN borrow.Book_name%TYPE
+)
+IS
+  v_date_of_issue DATE;
+  v_days NUMBER;
+  v_fine NUMBER := 0;
+BEGIN
+  -- Find the book
+  SELECT date_of_issue INTO v_date_of_issue
+  FROM borrow
+  WHERE Roll_no = p_roll_no AND Book_name = p_name_of_book AND status = 'I';
+  
+  -- Calculate days and fine
+  v_days := TRUNC(SYSDATE) - TRUNC(v_date_of_issue);
+  
+  IF v_days BETWEEN 15 AND 30 THEN
+    v_fine := v_days * 5;
+  ELSIF v_days > 30 THEN
+    v_fine := (30 * 5) + ((v_days - 30) * 50);
+  ELSE
+    v_fine := 0;
+  END IF;
+  
+  -- Update book status
+  UPDATE borrow
+  SET status='R'
+  WHERE Roll_no = p_roll_no AND Book_name = p_name_of_book;
+  
+  -- Insert fine only if it's greater than 0
+  IF v_fine > 0 THEN
+    INSERT INTO fine (roll_no, Date_1, amt) VALUES (p_roll_no, SYSDATE, v_fine);
+  END IF;
+  
+  -- **FIX 1: Save the changes**
+  COMMIT;
+  DBMS_OUTPUT.PUT_LINE('Book returned. Fine: ' || v_fine);
+  
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    -- **FIX 2: Undo any changes if an error occurs**
+    ROLLBACK; 
+    DBMS_OUTPUT.PUT_LINE('Error: Pending book not found.');
+  WHEN OTHERS THEN
+    ROLLBACK;
+    DBMS_OUTPUT.PUT_LINE('An unknown error occurred.');
+END;
+/
+
+-- Execution block (Enable server output first!)
+SET SERVEROUTPUT ON;
+
+-- Test Case 1: > 30 days (Roll 2)
+EXEC calc_fine(2, 'OS');
+
+-- Test Case 2: < 15 days (Roll 3)
+EXEC calc_fine(3, 'Networks');
+
+-- Test Case 3: 15-30 days (Roll 4)
+EXEC calc_fine(4, 'HCI');
+
+-- Test Case 4: Exception test
+EXEC calc_fine(999, 'Bad Book');
+
+-- Show results
+SELECT * FROM borrow;
+SELECT * FROM fine;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
