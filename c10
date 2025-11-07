@@ -1,0 +1,36 @@
+// 0. Switch to your database (if you haven't already)
+use myCollegeDB;
+
+// Clean up: Drop the collection if it already exists so we can start fresh
+db.student.drop();
+
+// Create collection and insert documents
+db.student.insertMany([
+    { stud_id: 101, stud_name: "Amit", dept: "Computer", marks: 90 },
+    { stud_id: 102, stud_name: "Priya", dept: "IT", marks: 75 },
+    { stud_id: 103, stud_name: "Rahul", dept: "Civil", marks: 100 },
+    { stud_id: 104, stud_name: "Sneha", dept: "Chemical", marks: 25 },
+    { stud_id: 105, stud_name: "John", dept: "Computer", marks: 55 },
+    { stud_id: 106, stud_name: "Meera", dept: "Chemical", marks: 50 }
+]);
+
+// 1. Find students having marks greater than 50
+db.student.find({ marks: { $gt: 50 } });
+
+// 2. Find students having marks between 50 and 80 (inclusive)
+db.student.find({ marks: { $gte: 50, $lte: 80 } });
+
+// 3. Find students having marks more than 60 from ‘Computer’ department
+db.student.find({ dept: "Computer", marks: { $gt: 60 } });
+
+// 4. Update marks of all students from ‘Civil’ department. Set marks to 30
+db.student.updateMany(
+    { dept: "Civil" },
+    { $set: { marks: 30 } }
+);
+
+// 5. Delete students from ‘Chemical’ department having marks less than 30
+db.student.deleteMany({ dept: "Chemical", marks: { $lt: 30 } });
+
+// 6. (Verification) Show the final state of the collection
+db.student.find();
