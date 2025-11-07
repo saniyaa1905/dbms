@@ -1,0 +1,59 @@
+-- Create required tables
+CREATE TABLE student (
+    stud_id     NUMBER PRIMARY KEY,
+    stud_name   VARCHAR2(50),
+    attendance  NUMBER,
+    grade       CHAR(1)
+);
+
+CREATE TABLE d_stud (
+    stud_id     NUMBER,
+    stud_name   VARCHAR2(50),
+    attendance  NUMBER,
+    grade       CHAR(1)
+);
+
+CREATE TABLE employee (
+    emp_id      NUMBER PRIMARY KEY,
+    emp_name    VARCHAR2(50),
+    designation VARCHAR2(30),
+    manager_id  NUMBER
+);
+
+-- Insert sample data
+INSERT INTO student VALUES (1, 'Riya', 80, 'A');
+INSERT INTO student VALUES (2, 'Amit', 65, 'B');
+INSERT INTO student VALUES (3, 'Neha', 72, 'C');
+
+INSERT INTO employee VALUES (101, 'Raj', 'CLERK', 130);
+INSERT INTO employee VALUES (102, 'Meena', 'MANAGER', 110);
+INSERT INTO employee VALUES (103, 'Asha', 'CLERK', 125);
+INSERT INTO employee VALUES (104, 'Vijay', 'CLERK', 115);
+
+COMMIT;
+
+-- PL/SQL Block
+SET SERVEROUTPUT ON;
+DECLARE
+    CURSOR c_emp IS
+        SELECT emp_name, designation, manager_id
+        FROM employee
+        WHERE designation = 'CLERK' AND manager_id > 120;
+BEGIN
+    -- 1. Update students with attendance < 75% to 'D' and record in d_stud
+    FOR s IN (SELECT * FROM student WHERE attendance < 75) LOOP
+        UPDATE student SET grade = 'D' WHERE stud_id = s.stud_id;
+        INSERT INTO d_stud VALUES (s.stud_id, s.stud_name, s.attendance, 'D');
+    END LOOP;
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Students with attendance < 75% updated and recorded in d_stud table.');
+    DBMS_OUTPUT.PUT_LINE('---------------------------------------------');
+
+    -- 2. Cursor FOR LOOP to print employees with designation CLERK and manager_id >120
+    DBMS_OUTPUT.PUT_LINE('Employees with designation CLERK and manager_id >120:');
+    FOR e IN c_emp LOOP
+        DBMS_OUTPUT.PUT_LINE('Name: ' || e.emp_name || ' | Designation: ' || e.designation || ' | Manager ID: ' || e.manager_id);
+    END LOOP;
+END;
+/
