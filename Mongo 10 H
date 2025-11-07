@@ -1,0 +1,154 @@
+
+
+
+
+// 1️⃣ Create and use database
+
+
+
+use collegeDB;
+
+
+
+ 
+
+
+
+// 2️⃣ Create "student" collection with
+sample data
+
+
+
+db.student.insertMany([
+
+
+
+  { rollno: 1, name: "Riya", dept:
+"Computer", marks: 75 },
+
+
+
+  { rollno: 2, name: "Amit", dept:
+"Mechanical", marks: 45 },
+
+
+
+  { rollno: 3, name: "Sneha", dept:
+"Civil", marks: 55 },
+
+
+
+  { rollno: 4, name: "Rahul", dept:
+"Computer", marks: 85 },
+
+
+
+  { rollno: 5, name: "Pooja", dept:
+"Chemical", marks: 25 },
+
+
+
+  { rollno: 6, name: "Vikas", dept:
+"Civil", marks: 65 },
+
+
+
+  { rollno: 7, name: "Nisha", dept:
+"Chemical", marks: 40 }
+
+
+
+]);
+
+
+
+ 
+
+
+
+// 3️⃣ Find students with marks > 50
+
+
+
+db.student.find({
+marks: { $gt: 50 } });
+
+
+
+ 
+
+
+
+// 4️⃣ Find students with marks between 50 and 80
+
+
+
+db.student.find({
+marks: { $gte: 50, $lte: 80 } });
+
+
+
+ 
+
+
+
+// 5️⃣ Find students with marks > 60 from
+'Computer' department
+
+
+
+db.student.find({
+dept: "Computer", marks: { $gt: 60 } });
+
+
+
+ 
+
+
+
+// 6️⃣ Update marks of 'Civil' department to 30
+
+
+
+db.student.updateMany(
+
+
+
+  { dept: "Civil" },
+
+
+
+  { $set: { marks: 30 } }
+
+
+
+);
+
+
+
+ 
+
+
+
+// 7️⃣ Delete 'Chemical' dept students with marks
+< 30
+
+
+
+db.student.deleteMany({
+dept: "Chemical", marks: { $lt: 30 } });
+
+
+
+ 
+
+
+
+// ✅ View all remaining records
+
+
+
+db.student.find();
+
+
+
