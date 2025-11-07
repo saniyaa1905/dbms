@@ -1,0 +1,65 @@
+CREATE TABLE borrower_data_77777 (
+    rollno INT,
+    name VARCHAR2(30),
+    dateofissue DATE,
+    nameofbook VARCHAR2(30),
+    status CHAR(1)
+);
+
+INSERT INTO borrower_data_77777 VALUES (101, 'Nova', TO_DATE('16-SEP-2025', 'DD-MON-YYYY'), 'DBMS', 'R');
+INSERT INTO borrower_data_77777 VALUES (102, 'Steven', TO_DATE('16-SEP-2025', 'DD-MON-YYYY'), 'CNS', 'I');
+INSERT INTO borrower_data_77777 VALUES (103, 'Alaric', TO_DATE('18-SEP-2025', 'DD-MON-YYYY'), 'TOC', 'I');
+INSERT INTO borrower_data_77777 VALUES (104, 'Elena', TO_DATE('20-SEP-2025', 'DD-MON-YYYY'), 'DS', 'I');
+INSERT INTO borrower_data_77777 VALUES (105, 'Jade', TO_DATE('23-SEP-2025', 'DD-MON-YYYY'), 'SPOS', 'R');
+INSERT INTO borrower_data_77777 VALUES (106, 'Damon', TO_DATE('01-OCT-2025', 'DD-MON-YYYY'), 'SPM', 'R');
+INSERT INTO borrower_data_77777 VALUES (107, 'Damons', TO_DATE('01-OCT-2025', 'DD-MON-YYYY'), 'HCI', 'I');
+
+CREATE TABLE Library_Audit_77777 (
+    rollno INT,
+    name VARCHAR2(30),
+    dateofissue DATE,
+    nameofbook VARCHAR2(30),
+    status CHAR(1),
+    operation_type VARCHAR2(10),
+    changed_on TIMESTAMP
+);
+
+CREATE OR REPLACE TRIGGER trg_after_delete_77777
+AFTER DELETE ON borrower_data_77777
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit_77777 (rollno, name, dateofissue, nameofbook, status, operation_type, changed_on)
+    VALUES (:OLD.rollno, :OLD.name, :OLD.dateofissue, :OLD.nameofbook, :OLD.status, 'DELETE', CURRENT_TIMESTAMP);
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_after_update_77777
+AFTER UPDATE ON borrower_data_77777
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit_77777 (rollno, name, dateofissue, nameofbook, status, operation_type, changed_on)
+    VALUES (:OLD.rollno, :OLD.name, :OLD.dateofissue, :OLD.nameofbook, :OLD.status, 'UPDATE', CURRENT_TIMESTAMP);
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_after_insert_77777
+AFTER INSERT ON borrower_data_77777
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit_77777 (rollno, name, dateofissue, nameofbook, status, operation_type, changed_on)
+    VALUES (:NEW.rollno, :NEW.name, :NEW.dateofissue, :NEW.nameofbook, :NEW.status, 'INSERT', CURRENT_TIMESTAMP);
+END;
+/
+
+DELETE FROM borrower_data_77777 WHERE rollno = 110;
+
+UPDATE borrower_data_77777
+SET status = 'R'
+WHERE rollno = 103;
+
+INSERT INTO borrower_data_77777 VALUES (143, 'TI', TO_DATE('01-OCT-2025', 'DD-MON-YYYY'), 'DBMoS', 'I');
+
+SELECT * FROM borrower_data_77777;
+
+SELECT * FROM Library_Audit_77777;
+truncate table Library_Audit_77777;
