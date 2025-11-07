@@ -1,0 +1,61 @@
+CREATE TABLE N_RollCall (
+  roll_no INT PRIMARY KEY,
+  att NUMBER,
+  status CHAR(1)
+);
+
+CREATE TABLE O_RollCall (
+  roll_no INT PRIMARY KEY,
+  att NUMBER,
+  status CHAR(1)
+);
+
+INSERT INTO N_RollCall VALUES (1, 80, 'P');
+INSERT INTO N_RollCall VALUES (2, 70, 'A');
+INSERT INTO N_RollCall VALUES (3, 85, 'P');
+INSERT INTO N_RollCall VALUES (4, 65, 'A');
+
+
+INSERT INTO O_RollCall VALUES (1, 80, 'P');
+INSERT INTO O_RollCall VALUES (2, 70, 'A');
+
+DECLARE
+  CURSOR c_nroll IS
+    SELECT roll_no, att, status FROM N_RollCall;
+  v_exist NUMBER;
+BEGIN
+  FOR rec IN c_nroll LOOP
+    SELECT COUNT(*) INTO v_exist FROM O_RollCall WHERE roll_no = rec.roll_no;
+    IF v_exist = 0 THEN
+      INSERT INTO O_RollCall (roll_no, att, status)
+      VALUES (rec.roll_no, rec.att, rec.status);
+    END IF;
+  END LOOP;
+END;
+/
+select * from O_ROLLCALL;
+
+CREATE TABLE employees_1 (
+  designation VARCHAR2(100),
+  emp_name VARCHAR2(100),
+  manager_id INT
+);
+
+INSERT INTO employees_1 VALUES ('CLERK', 'John Doe', 130);
+INSERT INTO employees_1 VALUES ('CLERK', 'Jane Smith', 110);
+INSERT INTO employees_1 VALUES ('MANAGER', 'Mike Johnson', 140);
+INSERT INTO employees_1 VALUES ('CLERK', 'Alice Brown', 125);
+
+
+SET SERVEROUTPUT ON;
+DECLARE
+  CURSOR c_emp IS
+    SELECT emp_name, designation
+    FROM employees_1
+    WHERE designation = 'CLERK' AND manager_id > 120;
+BEGIN
+  FOR emp_rec IN c_emp LOOP
+    DBMS_OUTPUT.PUT_LINE('Name: ' || emp_rec.emp_name || ', Designation: ' || emp_rec.designation);
+  END LOOP;
+END;
+/
