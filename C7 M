@@ -1,0 +1,51 @@
+create table stud21(
+    roll_no int primary key,
+    att int,
+    status char(1)
+);
+
+create table d_stud(
+    roll_no int,
+    att int
+);
+
+INSERT INTO stud21 VALUES (1, 80, NULL);
+INSERT INTO stud21 VALUES (2, 70, NULL);
+INSERT INTO stud21 VALUES (3, 60, NULL);
+INSERT INTO stud21 VALUES (4, 90, NULL);
+
+declare 
+    cursor cursor_rec is 
+    select roll_no,att,status from stud21 
+    where att<75 and status is NULL;
+begin 
+    for rec in cursor_rec loop 
+    update stud21 set status = 'D' 
+    where roll_no = rec.roll_no;
+
+    insert into d_stud values(rec.roll_no,rec.att);
+    end loop;
+end;
+/
+
+select * from d_stud;
+
+create table employees(
+    designation varchar2(100),
+    emp_name varchar2(100),
+    manager_id int
+);
+
+INSERT INTO employees VALUES ('CLERK', 'John Doe', 130);
+INSERT INTO employees VALUES ('CLERK', 'Jane Smith', 110);
+INSERT INTO employees VALUES ('MANAGER', 'Mike Johnson', 140);
+
+declare 
+    cursor cursor_is is select designation,emp_name,manager_id from employees 
+    where designation = 'CLERK' and manager_id>120;
+begin 
+    for rec in cursor_is loop 
+        dbms_output.put_line('Name: '|| rec.emp_name || ',designation: ' || rec.designation);
+    end loop;
+end;
+/
