@@ -1,0 +1,29 @@
+// Use or create database
+use companyDB;
+
+// Create collection employee and insert documents
+db.employee.insertMany([
+  { emp_id: 1, emp_name: "Alice", dept: "HR", salary: 60000, joining_date: new Date("2023-05-15") },
+  { emp_id: 2, emp_name: "Bob", dept: "Admin", salary: 45000, joining_date: new Date("2024-10-01") },
+  { emp_id: 3, emp_name: "Charlie", dept: "HR", salary: 75000, joining_date: new Date("2025-03-20") },
+  { emp_id: 4, emp_name: "David", dept: "Admin", salary: 55000, joining_date: new Date("2022-12-01") },
+  { emp_id: 5, emp_name: "Eve", dept: "IT", salary: 80000, joining_date: new Date("2021-07-07") }
+]);
+
+// 1. Find employees having salary greater than 50000
+db.employee.find({ salary: { $gt: 50000 } });
+
+// 2. Find employees having salary between 50000 and 80000
+db.employee.find({ salary: { $gte: 50000, $lte: 80000 } });
+
+// 3. Find employees having salary more than 60000 from ‘HR’ department
+db.employee.find({ salary: { $gt: 60000 }, dept: "HR" });
+
+// 4. Update Salaries of all employees from ‘Admin’ department by 5% increment
+db.employee.updateMany(
+  { dept: "Admin" },
+  [{ $set: { salary: { $multiply: ["$salary", 1.05] } } }]
+);
+
+// 5. Delete employees from ‘HR’ department having joining date before 1 Jan 2025
+db.employee.deleteMany({ dept: "HR", joining_date: { $lt: new Date("2025-01-01") } });
