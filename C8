@@ -1,0 +1,38 @@
+-- Tables (run once)
+CREATE TABLE N_RollCall(stud_id NUMBER PRIMARY KEY, stud_name VARCHAR2(50), attendance NUMBER);
+CREATE TABLE O_RollCall(stud_id NUMBER PRIMARY KEY, stud_name VARCHAR2(50), attendance NUMBER);
+CREATE TABLE Emp(emp_id NUMBER PRIMARY KEY, emp_name VARCHAR2(50), designation VARCHAR2(30), manager_id NUMBER);
+
+-- Sample data
+INSERT INTO N_RollCall VALUES (1,'Riya',80);
+INSERT INTO N_RollCall VALUES (2,'Amit',70);
+INSERT INTO N_RollCall VALUES (3,'Sneha',90);
+INSERT INTO O_RollCall VALUES (1,'Riya',80);
+INSERT INTO Emp VALUES (101,'Amit','CLERK',130);
+INSERT INTO Emp VALUES (102,'Rohit','MANAGER',110);
+INSERT INTO Emp VALUES (103,'Pooja','CLERK',140);
+COMMIT;
+
+-- PL/SQL block
+SET SERVEROUTPUT ON;
+DECLARE
+  CURSOR c_new(p_att NUMBER) IS
+    SELECT * FROM N_RollCall n
+    WHERE n.attendance>=p_att
+    AND n.stud_id NOT IN (SELECT stud_id FROM O_RollCall);
+    
+  CURSOR c_emp(p_desig VARCHAR2, p_mgr NUMBER) IS
+    SELECT emp_name, designation, manager_id FROM Emp
+    WHERE designation=p_desig AND manager_id>p_mgr;
+BEGIN
+  FOR s IN c_new(75) LOOP
+    INSERT INTO O_RollCall VALUES(s.stud_id,s.stud_name,s.attendance);
+    DBMS_OUTPUT.PUT_LINE('Inserted: '||s.stud_name);
+  END LOOP;
+
+  DBMS_OUTPUT.PUT_LINE('--- Employees ---');
+  FOR e IN c_emp('CLERK',120) LOOP
+    DBMS_OUTPUT.PUT_LINE(e.emp_name||' - '||e.designation||' - '||e.manager_id);
+  END LOOP;
+END;
+/
