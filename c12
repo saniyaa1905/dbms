@@ -1,0 +1,58 @@
+// Use or create database
+use salesDB;
+
+// Insert sample documents into sales collection
+db.sales.insertMany([
+  { customerName: "Alice", product: "Laptop", category: "Electronics", quantity: 2, price: 1000, date: new Date("2025-10-01"), city: "Pune", paymentMode: "Credit Card" },
+  { customerName: "Bob", product: "Mobile", category: "Electronics", quantity: 5, price: 500, date: new Date("2025-10-05"), city: "Mumbai", paymentMode: "Debit Card" },
+  { customerName: "Charlie", product: "Shirt", category: "Clothing", quantity: 3, price: 50, date: new Date("2025-10-10"), city: "Pune", paymentMode: "Cash" },
+  { customerName: "David", product: "Laptop", category: "Electronics", quantity: 1, price: 1200, date: new Date("2025-10-15"), city: "Mumbai", paymentMode: "Credit Card" },
+  { customerName: "Eve", product: "Shoes", category: "Clothing", quantity: 2, price: 80, date: new Date("2025-10-20"), city: "Pune", paymentMode: "Debit Card" }
+]);
+
+// 1. Find total sales (revenue) per product category
+db.sales.aggregate([
+  {
+    $group: {
+      _id: "$category",
+      totalRevenue: { $sum: { $multiply: ["$quantity", "$price"] } }
+    }
+  }
+]);
+
+// 2. Find average order value per city
+db.sales.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      avgOrderValue: { $avg: { $multiply: ["$quantity", "$price"] } }
+    }
+  }
+]);
+
+// 3. Find top 3 products by total revenue
+db.sales.aggregate([
+  {
+    $group: {
+      _id: "$product",
+      totalRevenue: { $sum: { $multiply: ["$quantity", "$price"] } }
+    }
+  },
+  { $sort: { totalRevenue: -1 } },
+  { $limit: 3 }
+]);
+
+// 4. Count number of orders per payment mode
+db.sales.aggregate([
+  {
+    $group: {
+      _id: "$paymentMode",
+      orderCount: { $sum: 1 }
+    }
+  }
+]);
+
+// Create relevant index example for efficient querying (optional)
+db.sales.createIndex({ category: 1 });
+db.sales.createIndex({ city: 1 });
+db.sales.createIndex({ paymentMode: 1 });
