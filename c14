@@ -1,0 +1,31 @@
+// Use or create database
+use libraryDB;
+
+// Insert sample book documents
+db.books.insertMany([
+  { book_id: 1, title: "Book A", author: "Author X", type: "Fiction" },
+  { book_id: 2, title: "Book B", author: "Author Y", type: "Non-Fiction" },
+  { book_id: 3, title: "Book C", author: "Author X", type: "Fiction" },
+  { book_id: 4, title: "Book D", author: "Author Z", type: "Science" },
+  { book_id: 5, title: "Book E", author: "Author Y", type: "Non-Fiction" }
+]);
+
+// Define map function - emit type with value 1
+var mapFunction = function() {
+  emit(this.type, 1);
+};
+
+// Define reduce function - sum counts per type
+var reduceFunction = function(type, counts) {
+  return Array.sum(counts);
+};
+
+// Execute MapReduce
+db.books.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "books_count_by_type" }
+);
+
+// To view results
+db.books_count_by_type.find();
