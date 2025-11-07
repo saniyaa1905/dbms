@@ -1,0 +1,113 @@
+---1. ENVIRONMENT SETUP
+SET SERVEROUTPUT ON;
+SET VERIFY OFF;
+SET FEEDBACK OFF; -- Suppresses messages like "1 row inserted"
+
+-- 2. CLEANUP (Drop tables, wrapped to suppress ORA-00942 if tables don't exist yet)
+BEGIN
+   EXECUTE IMMEDIATE 'DROP TABLE Stud_Marks_5555';
+EXCEPTION
+   WHEN OTHERS THEN
+      NULL; -- Ignore error if table doesn't exist
+END;
+/
+
+BEGIN
+   EXECUTE IMMEDIATE 'DROP TABLE Result_5555';
+EXCEPTION
+   WHEN OTHERS THEN
+      NULL; -- Ignore error if table doesn't exist
+END;
+/
+
+-- 3. CREATE TABLES
+CREATE TABLE Stud_Marks_5555 (
+    roll_no NUMBER PRIMARY KEY,
+    name VARCHAR2(50),
+    total_marks NUMBER
+);
+
+CREATE TABLE Result_5555 (
+    roll_no NUMBER PRIMARY KEY,
+    name VARCHAR2(50),
+    class VARCHAR2(20)
+);
+
+-- 4. INSERT RECORDS
+-- Expected: Distinction
+INSERT INTO Stud_Marks_5555 VALUES (1, 'Alice', 1200);
+-- Expected: First Class
+INSERT INTO Stud_Marks_5555 VALUES (2, 'Bob', 950);
+-- Expected: Higher Second Class
+INSERT INTO Stud_Marks_5555 VALUES (3, 'Charlie', 870);
+-- Expected: No Grade
+INSERT INTO Stud_Marks_5555 VALUES (4, 'David', 700);
+COMMIT;
+
+
+-- 5. CREATE STORED PROCEDURE (proc_Grade)
+-- The procedure logic is correct based on the fixed tiered conditions.
+CREATE OR REPLACE PROCEDURE proc_Grade(
+    p_marks IN NUMBER,
+    p_class OUT VARCHAR2
+) IS
+BEGIN
+    -- Distinction: 990 - 1500
+    IF p_marks >= 990 AND p_marks <= 1500 THEN
+        p_class := 'Distinction';
+    -- First Class: 900 - 989 (since marks > 990 failed the IF)
+    ELSIF p_marks >= 900 THEN
+        p_class := 'First Class';
+    -- Higher Second Class: 825 - 899 (since marks > 900 failed the ELSIF)
+    ELSIF p_marks >= 825 THEN
+        p_class := 'Higher Second Class';
+    ELSE
+        p_class := 'No Grade';
+    END IF;
+END;
+/
+
+-- 6. PL/SQL BLOCK to process a student and update/insert results
+DECLARE
+    v_class VARCHAR2(20);
+    v_exists NUMBER;
+    -- Variable assigned the value from user input
+    v_input_roll_no NUMBER := &input_roll_no;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Processing Roll No: ' || v_input_roll_no);
+    
+    -- Loop will run only once for the specified roll_no
+    FOR rec IN (
+        SELECT roll_no, name, total_marks
+        FROM Stud_Marks_5555
+        WHERE roll_no = v_input_roll_no
+    ) LOOP
+        -- 1. Call the procedure to get the grade
+        proc_Grade(rec.total_marks, v_class);
+
+        -- 2. Check if a result record already exists
+        SELECT COUNT(*) INTO v_exists FROM Result_5555 WHERE roll_no = rec.roll_no;
+
+        -- 3. Insert or Update the Result table
+        IF v_exists = 0 THEN
+            INSERT INTO Result_5555 (roll_no, name, class) VALUES (rec.roll_no, rec.name, v_class);
+            DBMS_OUTPUT.PUT_LINE('Inserted result for ' || rec.name);
+        ELSE
+            UPDATE Result_5555 SET name = rec.name, class = v_class WHERE roll_no = rec.roll_no;
+            DBMS_OUTPUT.PUT_LINE('Updated result for ' || rec.name);
+        END IF;
+    END LOOP;
+    
+    COMMIT;
+EXCEPTION
+    -- Handles error if the user input roll_no is not in Stud_Marks_5555
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Student with Roll No ' || v_input_roll_no || ' not found.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An unexpected error occurred: ' || SQLERRM);
+END;
+/
+
+-- 7. VERIFICATION QUERIES
+SELECT * FROM Result_5555 WHERE roll_no = &input_roll_no;
+SELECT * FROM Result_5555;
